@@ -22,8 +22,9 @@ export async function proxyDelete(path: string): Promise<unknown> {
     method: "DELETE",
     cache: "no-store",
   });
-  if (!res.ok) throw new Error(`kernel DELETE ${path} → ${res.status}`);
-  return res.json();
+  if (!res.ok && res.status !== 204) throw new Error(`kernel DELETE ${path} → ${res.status}`);
+  if (res.status === 204) return null;
+  return res.json().catch(() => null);
 }
 
 export async function proxyPut(path: string, body?: unknown): Promise<unknown> {
@@ -36,3 +37,31 @@ export async function proxyPut(path: string, body?: unknown): Promise<unknown> {
   if (!res.ok) throw new Error(`kernel PUT ${path} → ${res.status}`);
   return res.json();
 }
+
+export async function proxyPatch(path: string, body?: unknown): Promise<{ status: number; data: unknown }> {
+  const res = await fetch(`${KERNEL_URL}${path}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+    cache: "no-store",
+  });
+  const data = res.status === 204 ? null : await res.json().catch(() => null);
+  if (!res.ok && res.status !== 204) throw new Error(`kernel PATCH ${path} → ${res.status}`);
+  return { status: res.status, data };
+}
+
+/** Stream bytes from the kernel — used for media and proxy pass-through routes. */
+export async function proxyStream(
+  path: string,
+  options?: { method?: string; headers?: Record<string, string>; body?: BodyInit },
+): Promise<Response> {
+  const res = await fetch(`${KERNEL_URL}${path}`, {
+    method: options?.method ?? "GET",
+    headers: options?.headers,
+    body: options?.body,
+    cache: "no-store",
+  });
+  return res;
+}
+
+export { KERNEL_URL };
