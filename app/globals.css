@@ -1,0 +1,247 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Bump the base font size so every rem-based Tailwind class (text-xs,
+   text-sm, text-base, …) scales up proportionally without touching
+   individual components. Default browser root is 16px. */
+html { font-size: 18px; }
+
+button, a, select { cursor: pointer; }
+
+/* ── Avatar animations ─────────────────────────────────────────────── */
+@keyframes av-breathe {
+  0%, 100% { opacity: 0.65; transform: scale(1); }
+  50%       { opacity: 1;    transform: scale(1.04); }
+}
+@keyframes av-pulse-ring {
+  0%   { transform: scale(0.85); opacity: 0.9; }
+  70%  { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(0.85); opacity: 0; }
+}
+@keyframes av-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes av-spin-rev {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+@keyframes av-orbit {
+  from { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(20px) rotate(-360deg); }
+}
+@keyframes av-blink {
+  0%, 80%, 100% { transform: scale(1); opacity: 1; }
+  40%           { transform: scale(0.3); opacity: 0.2; }
+}
+@keyframes av-flash-in {
+  0%   { opacity: 0; transform: scale(0.4); }
+  60%  { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes av-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-4px); }
+  40%       { transform: translateX(4px); }
+  60%       { transform: translateX(-3px); }
+  80%       { transform: translateX(3px); }
+}
+@keyframes av-build-dot {
+  0%, 100% { opacity: 0.1; transform: scale(0.5); }
+  50%      { opacity: 1;   transform: scale(1); }
+}
+@keyframes av-success-ring {
+  0%   { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* Sidebar collapsible sections — CSS grid trick so both open AND close animate.
+   forceMount keeps the content in the DOM; data-state drives the transition. */
+.nav-section-content {
+  display: grid;
+  overflow: hidden;
+  transition: grid-template-rows 180ms ease, opacity 180ms ease;
+}
+.nav-section-content[data-state="open"]   { grid-template-rows: 1fr; opacity: 1; }
+.nav-section-content[data-state="closed"] { grid-template-rows: 0fr; opacity: 0; pointer-events: none; }
+.nav-section-content > div { min-height: 0; }
+/* During panel resize, prevent iframes from swallowing mouse events.
+   Applied synchronously via classList in the views page mousedown handler
+   so it takes effect before the first mousemove (React state batching is
+   too slow — the iframe would capture the event in the same frame). */
+.view-panel-dragging iframe { pointer-events: none !important; }
+:root {
+  --background: #0a0a0a;
+  --foreground: #e0e0e0;
+  --card: #141414;
+  --card-border: #2a2a2a;
+  --accent: #00ff88;
+  --accent-dim: #00cc6a;
+  --error: #ff4444;
+  --warning: #ffaa00;
+  --muted: #666666;
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--foreground);
+  --color-card-border: var(--card-border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--background);
+  --color-accent-dim: var(--accent-dim);
+  --color-error: var(--error);
+  --color-warning: var(--warning);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted);
+
+  /* shadcn/ui semantic tokens — mapped to the existing dark-terminal theme
+     so shadcn components (bg-primary, bg-destructive, border, ring, …) stay
+     consistent with the hand-rolled Tailwind classes used elsewhere. */
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--background);
+  --color-secondary: var(--card-border);
+  --color-secondary-foreground: var(--foreground);
+  --color-destructive: var(--error);
+  --color-destructive-foreground: var(--foreground);
+  --color-popover: var(--card);
+  --color-popover-foreground: var(--foreground);
+  --color-border: var(--card-border);
+  --color-input: var(--card-border);
+  --color-ring: var(--accent);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-mono), monospace;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Browse-canvas-only theme overrides. Applied via `useBrowseTheme()`
+   on the canvas wrapper div as `browse-theme-light` / `browse-theme-dark`.
+   Scope is descendants of the wrapper, so the rest of the dashboard
+   (sidebar, settings dialog, job queue) stays on the global theme.
+   The vars cascade through xyflow nodes, summary tiles, section pop-
+   outs, the URL bar, etc. — every browse-internal surface uses the
+   same `var(--background)` / `var(--foreground)` tokens. */
+.browse-theme-light {
+  --background: #f5f5f0;
+  --foreground: #212427;
+  --card: #ffffff;
+  --card-border: #d8d8d0;
+  --accent: #00aa55;
+  --accent-dim: #008840;
+  --error: #cc3333;
+  --warning: #cc7700;
+  --muted: #5a5d62;
+
+}
+/* Tailwind typography defines its `--tw-prose-*` colour palette ON
+   the `.prose` element itself, so overriding those vars on an
+   ancestor (`.browse-theme-light`) gets shadowed. Target the prose
+   element directly with a descendant selector so our values win
+   over `.prose`'s defaults — and pin both the plain and `-invert`
+   slots so unconditional `prose-invert` (used on the summary tile)
+   also renders dark text on light surfaces. */
+/* Direct element overrides: belt-and-braces in case the cascade
+   above gets shadowed by some other selector (Tailwind v4 prose may
+   compute heading colour at the element-level rule rather than via
+   the var indirection). Specificity 0,2,1 beats both .prose and
+   .browse-theme-light alone. */
+.browse-theme-light .prose,
+.browse-theme-light .prose-invert,
+.browse-theme-light .prose h1,
+.browse-theme-light .prose h2,
+.browse-theme-light .prose h3,
+.browse-theme-light .prose h4,
+.browse-theme-light .prose h5,
+.browse-theme-light .prose h6,
+.browse-theme-light .prose-invert h1,
+.browse-theme-light .prose-invert h2,
+.browse-theme-light .prose-invert h3,
+.browse-theme-light .prose-invert h4,
+.browse-theme-light .prose-invert h5,
+.browse-theme-light .prose-invert h6 {
+  color: #0d0e10;
+}
+.browse-theme-light .prose p,
+.browse-theme-light .prose li,
+.browse-theme-light .prose blockquote,
+.browse-theme-light .prose-invert p,
+.browse-theme-light .prose-invert li,
+.browse-theme-light .prose-invert blockquote {
+  color: #212427;
+}
+
+.browse-theme-light .prose,
+.browse-theme-light .prose-invert {
+  --tw-prose-body: #212427;
+  --tw-prose-headings: #0d0e10;
+  --tw-prose-lead: #3a3d42;
+  --tw-prose-links: #00aa55;
+  --tw-prose-bold: #0d0e10;
+  --tw-prose-counters: #5a5d62;
+  --tw-prose-bullets: #8a8d92;
+  --tw-prose-hr: #d8d8d0;
+  --tw-prose-quotes: #212427;
+  --tw-prose-quote-borders: #d8d8d0;
+  --tw-prose-captions: #5a5d62;
+  --tw-prose-code: #0d0e10;
+  --tw-prose-pre-code: #e8e8e0;
+  --tw-prose-pre-bg: #1a1c1f;
+  --tw-prose-th-borders: #c0c0b8;
+  --tw-prose-td-borders: #d8d8d0;
+  --tw-prose-invert-body: #212427;
+  --tw-prose-invert-headings: #0d0e10;
+  --tw-prose-invert-lead: #3a3d42;
+  --tw-prose-invert-links: #00aa55;
+  --tw-prose-invert-bold: #0d0e10;
+  --tw-prose-invert-counters: #5a5d62;
+  --tw-prose-invert-bullets: #8a8d92;
+  --tw-prose-invert-hr: #d8d8d0;
+  --tw-prose-invert-quotes: #212427;
+  --tw-prose-invert-quote-borders: #d8d8d0;
+  --tw-prose-invert-captions: #5a5d62;
+  --tw-prose-invert-code: #0d0e10;
+  --tw-prose-invert-pre-code: #e8e8e0;
+  --tw-prose-invert-pre-bg: #1a1c1f;
+  --tw-prose-invert-th-borders: #c0c0b8;
+  --tw-prose-invert-td-borders: #d8d8d0;
+}
+.browse-theme-dark {
+  --background: #0a0a0a;
+  --foreground: #e0e0e0;
+  --card: #212427;
+  --card-border: #2a2d31;
+  --accent: #00ff88;
+  --accent-dim: #00cc6a;
+  --error: #ff4444;
+  --warning: #ffaa00;
+  --muted: #666666;
+}
