@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@source "../node_modules/@rdan/browse-ui/src";
 
 /* Bump the base font size so every rem-based Tailwind class (text-xs,
    text-sm, text-base, …) scales up proportionally without touching
