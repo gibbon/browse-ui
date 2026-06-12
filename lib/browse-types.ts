@@ -1,4 +1,4 @@
-// Re-export shim — types live in @rdan/browse-service/browse-types.
+// Re-export shim — types live in @rdan/browse-ui.
 export type {
   BrowseSession,
   BrowseSectionPin,
@@ -14,11 +14,11 @@ export type {
   BrowseGroup,
   BrowseGroupMember,
   DetectedSection,
-} from "@rdan/browse-service/browse-types";
+} from "@rdan/browse-ui";
 export {
   sessionFromRow,
   nodeFromRow,
   edgeFromRow,
   groupFromRow,
   groupMemberFromRow,
-} from "@rdan/browse-service/browse-types";
+} from "@rdan/browse-ui";
